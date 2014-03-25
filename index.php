@@ -1,49 +1,48 @@
 <?php
 /*
- * from http://www.php.net/manual/en/internals2.opcodes.ticks.php
- * opcode number: 105
+ * This is a testcase for using the profiler
  */
-// A function that records the time when it is called
+
+	//To initialize the profiler
+	require_once("NameExtractor.php");
+	$profiler = new \analyser\NameExtractor();
+	$profiler->start();
+	
+	declare(ticks=1);
+	
+	//end of init
 
 
-require_once("profiler.php");
-$profiler = new \profiler\Profiler();
-register_tick_function(array(&$profiler, 'tick'), true);
-declare(ticks=1);
+	//test program starts
+	class SomeClass {
+		private $thatString = "Daniel";
+		private $thatObject = null;
 
-class SomeClass {
-	private $thatString = "Daniel";
-	private $thatObject = null;
+		function doSomeFunkyShit($thatParameter, SomeClass $thatSomeClassParameter) {
+			$this->thatObject = $thatSomeClassParameter;
+			$thatSomeClassParameter->doOtherFunkyShit($thatParameter + 1);
+		}
 
-	function doSomeFunkyShit($iterations, SomeClass $test) {
-		$this->thatObject = $test;
-		$test->doOtherFunkyShit($iterations + 1);
+		function doOtherFunkyShit($thatParameter) {
+			$foo = "hello";
+			for ($x = 0; $x < $thatParameter; ++$x) {
+		         echo "$this->thatString \n";
+		   }
+		}
 	}
 
-	function doOtherFunkyShit($iterations) {
-		$foo = "hello";
-		for ($x = 0; $x < $iterations; ++$x) {
-	         echo "$this->thatString \n";
-	   }
+	class SubClass extends SomeClass {
+
 	}
-}
 
-class SubClass extends SomeClass {
+	function rawFunction($rawFunctionParameter) {
+		echo "$rawFunctionParameter";
+	}
 
-}
-
-// Set up a tick handler
-
-
-// Initialize the function before the declare block
-//profile();
-
-// Run a block of code, throw a tick every 2nd statement
 	$obj = new SomeClass();
 	$obj->doSomeFunkyShit(1, $obj);
 	$obj->doSomeFunkyShit(1, new Subclass());
+	rawFunction("funky");
 
-
-unregister_tick_function(array(&$profiler, 'tick'));
-$profiler->show();
+	$profiler->stop();
 ?>
