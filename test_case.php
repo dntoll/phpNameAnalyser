@@ -9,7 +9,6 @@
 	$profiler->start();
 	
 	declare(ticks=1);
-	
 	//end of init
 
 
@@ -17,15 +16,29 @@
 	class SomeClass {
 		private $thatString = "Daniel";
 		private $thatObject = null;
+		private $thatArrayProperty = null;
+
+		function __construct() {
+			$this->thatString = "Daniel foo";
+			 $this->thatArrayProperty  = array();
+			 $this->thatArrayProperty[]= 0;
+			 $this->thatArrayProperty[]= "foo";
+		}
 
 		function doSomeFunkyShit($thatParameter, SomeClass $thatSomeClassParameter) {
 			$this->thatObject = $thatSomeClassParameter;
-			$thatSomeClassParameter->doOtherFunkyShit($thatParameter + 1);
+
+			$array = array();
+			$array[] = $thatParameter + 1;
+			
+			$thatSomeClassParameter->doOtherFunkyShit($array);
+			$array[] = $thatSomeClassParameter;
+			$thatSomeClassParameter->doOtherFunkyShit($array);
 		}
 
-		function doOtherFunkyShit($thatParameter) {
+		function doOtherFunkyShit($thatArrayParameter) {
 			$foo = "hello";
-			for ($x = 0; $x < $thatParameter; ++$x) {
+			for ($x = 0; $x < $thatArrayParameter[0]; ++$x) {
 		         echo "$this->thatString \n";
 		   }
 		}

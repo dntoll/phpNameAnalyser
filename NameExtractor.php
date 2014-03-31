@@ -18,9 +18,11 @@ class NameExtractor {
 	public function start() {
 
 		
-		set_time_limit(120);
+		set_time_limit(2520);
 		register_tick_function(array(&$this, 'tick'), true);
 		declare(ticks=1);
+		$this->f = fopen("functionspy.txt", "a");
+		$this->functionName = "";
 	}
 
 	public function stop() {
@@ -28,12 +30,14 @@ class NameExtractor {
 		unregister_tick_function(array(&$profiler, 'tick'));
 		
 		file_put_contents($this->filename, serialize($this->classes));
-		writeCSV();
+		$this->writeCSV();
+		fclose($this->f);
 		
 	}
 
 	public function tick($return = false)
 	{
+		
 		$bt = debug_backtrace();
 		
 	   
@@ -42,6 +46,9 @@ class NameExtractor {
 		   	if (isset($call["object"])) {
 		   		//the this object 
 		   		$that = $call["object"];
+
+		   		if ($that == $this)
+		   			continue;
 		   		$ro = new \ReflectionObject($that);
 		   		$props   = $ro->getProperties();
 
@@ -59,26 +66,48 @@ class NameExtractor {
 		   			$className = $call["class"];
 		   			$ro = new \ReflectionClass($className);
 		   			$rm = $ro->getMethod($functionName);
+
+
 					$rm->setAccessible(true);
-					$this->recordArguments($call["args"], $rm, $className, $functionName);
+					$this->recordArguments($call["args"], $rm, "$className.$functionName()");
 		   		} else {
 		   			try {
-		   				$rf = new \ReflectionFunction($functionName);
-		   				$this->recordArguments($call["args"], $rf, "function", $functionName);
+		   				if ($functionName != "" && $functionName != "require" && 
+		   					$functionName != "require_once" &&
+		   					$functionName != "include" && 
+		   					$functionName != "wp_initial_constants") {
+		   					//echo "ReflectionFunction $functionName \n";
+		   					//
+		   					
+		   					if ($functionName != $this->functionName) {
+		   						$this->functionName = $functionName;
+			   					//fwrite($this->f, $functionName . "\n");
+			   					
+				   				$rf = new \ReflectionFunction($functionName);
+				   				$this->recordArguments($call["args"], $rf, "$functionName()");
+			   				}
+			   				//
+		   				}
 		   			} catch (\ReflectionException $e) {
 
 		   			}
 		   		}
 		   	}
 		}
+
+		
 	   return TRUE;
 	}
 
-	private function recordArguments($arguments, $reflection, $className, $functionName) {
+	private function recordArguments($arguments, $reflection, $className) {
 		foreach ($arguments as $key => $variableValue) {
 			$pa = $reflection->getParameters();
-			if (isset($pa[$key]))
-				$this->recordParameter($className, $functionName, $pa[$key]->getName(), $variableValue);
+
+
+			if (isset($pa[$key])) {
+				//var_dump($pa[$key]->getClass());
+				$this->recordParameter($className, $pa[$key]->getName(), $variableValue);
+			}
 		}
 	}
 
@@ -87,9 +116,13 @@ class NameExtractor {
 
 		foreach( $this->classes as $className => $class) {
 			foreach( $class as $scope => $scopes) {
-				foreach( $scopes as $name => $variable) {
-					foreach( $variable as $value) {
-						fwrite($fileHandle, "$className;$scope;$value;$name\n");
+				foreach( $scopes as $variableName => $types) {
+					foreach( $types as $type => $subtypes) {
+						
+						foreach( $subtypes as $subtype => $notUsed) {
+							$type .= "<" . $subtype . ">";
+						}
+						fwrite($fileHandle, "$className;$scope;$type;$variableName\n");
 					}
 				}
 			}
@@ -99,7 +132,7 @@ class NameExtractor {
 	}
 
 
-	private function recordParameter($className, $functionName, $variableName, $value) {
+	private function recordParameter($className, $variableName, $value) {
 		$this->recordVariable("parameter", $className, $variableName, $value);
 	}
 
@@ -107,29 +140,58 @@ class NameExtractor {
 		$this->recordVariable("property", $className, $variableName, $value);
 	}
 
-	private function recordVariable($type, $className, $variableName, $value) {
+	private function recordVariable($scope, $className, $variableName, $value) {
 		if (isset($this->classes[$className]) == false) {
 			$this->classes[$className] = array();
 			
 		}
-		if (isset($this->classes[$className][$type]) == false) {
-			$this->classes[$className][$type] = array();
+		if (isset($this->classes[$className][$scope]) == false) {
+			$this->classes[$className][$scope] = array();
 		}
 
-		if (isset($this->classes[$className][$type][$variableName] ) == false) {
-			$this->classes[$className][$type][$variableName] = array();
+		if (isset($this->classes[$className][$scope][$variableName] ) == false) {
+			$this->classes[$className][$scope][$variableName] = array();
 		}
 
-		
-		$this->classes[$className][$type][$variableName][$this->getType($value)] = $this->getType($value);
+		if ($value != null) {
+			//ignore array = true so only store an array in one variable...
+			$type = $this->getType($value);
+
+
+			if (isset($this->classes[$className][$scope][$variableName][$type] ) == false) {
+				$this->classes[$className][$scope][$variableName][$type] = array();
+			}
+			if ($type == "array"){
+				$this->addArrayTypes($this->classes[$className][$scope][$variableName][$type], $value);
+			}
+		}
 	}
 
 	private function getType($value) {
 		if (is_object($value) == "object")
 			return get_class($value);
-		else
+		else {
 			return gettype($value);
+		}
 	}
+
+	private function addArrayTypes(&$ret, $values, $ignoreArray = false) {
+		if ($ignoreArray == false && 
+			is_array ($values)) {
+
+			$types = array();
+			
+			foreach ($values as $key => $instValue) {
+				$types[$this->getType($instValue)] = true;
+			}
+			foreach ($types as $key => $instValue) {
+				$ret[$key] = $key;
+			}
+			
+		}
+	}
+
+
 }
 
 
