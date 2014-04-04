@@ -3,7 +3,7 @@
 namespace analyser;
 
 
-require_once("ObjectTracker.php");
+require_once("model\ObjectTracker.php");
 require_once("model\Type.php");
 require_once("model\Scope.php");
 require_once("model\Instance.php");
@@ -140,7 +140,11 @@ class NameExtractor {
 			if (isset($pa[$key])) {
 				//var_dump($pa[$key]->getClass());
 				$className->setTypeHint($pa[$key]->getClass());
-				$this->recordVariable($className, new VariableName($pa[$key]->getName()), new Instance($variableValue));
+				try {
+					$this->recordVariable($className, new VariableName($pa[$key]->getName()), new Instance($variableValue));
+				} catch (\Exception $e) {
+
+				}
 			}
 		}
 	}
@@ -200,15 +204,6 @@ class NameExtractor {
 			
 		
 	}
-
-	
-
-	
-	
-
-	
-
-
 }
 
 

@@ -10,26 +10,14 @@ namespace analyser;
 abstract class AbstractExecutionContext {
 
 	
-	private $documentation = "";
+	protected $documentation = "";
 
 	protected function setDocumentation($docs) {
 		if ($docs != null)
 			$this->documentation = $docs;	
 	}
 
-	protected function getCommentOn(VariableName $variableName) {
-
-		$lines = explode("\n", $this->documentation);
-
-		$ret = "";
-		foreach ($lines as $line) {
-			if(strpos($line, "$". $variableName->toString()) !== FALSE) {
-				$ret .= "C[" . trim($line) . "]";
-			}
-		}
-
-		return $ret;
-	}
+	
 
 	public abstract function toString(VariableName $variableName);
 
@@ -64,6 +52,20 @@ class FunctionParameterContext extends AbstractExecutionContext {
 	public function getScope() {
 		return "parameter";
 	}
+
+	protected function getCommentOn(VariableName $variableName) {
+
+		$lines = explode("\n", $this->documentation);
+
+		$ret = "";
+		foreach ($lines as $line) {
+			if(strpos($line, "$". $variableName->toString()) !== FALSE) {
+				$ret .= "C[" . trim($line) . "]";
+			}
+		}
+
+		return $ret;
+	}
 }
 
 class MethodParameterContext extends FunctionParameterContext{
@@ -85,6 +87,8 @@ class MethodParameterContext extends FunctionParameterContext{
 	public function getFunction() {
 		return $this->class . "." . $this->function;
 	}
+
+
 }
 
 class PropertyContext extends AbstractExecutionContext{
@@ -108,5 +112,19 @@ class PropertyContext extends AbstractExecutionContext{
 	}
 	public function getScope() {
 		return "property";
+	}
+
+	protected function getCommentOn(VariableName $variableName) {
+
+		$lines = explode("\n", $this->documentation);
+
+		$ret = "";
+		foreach ($lines as $line) {
+//			if(strpos($line, "$". $variableName->toString()) !== FALSE) {
+				$ret .= "C[" . trim($line) . "]";
+//			}
+		}
+
+		return $ret;
 	}
 }

@@ -23,8 +23,8 @@ class ObjectTracker {
 		foreach ($this->objects as $objectRef => $objectInstance) {
 			foreach ($objectInstance as $name => $usages) {
 				foreach ($usages as $usage => $notUsed) {
-					fwrite($fileHandle, "$objectRef; $name; $usage \n");
-					var_dump("$objectRef; $name; $notUsed \n");
+					fwrite($fileHandle, "$objectRef; $name; $notUsed \n");
+					//var_dump("$objectRef; $name; $notUsed \n");
 				}
 			}
 			
