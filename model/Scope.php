@@ -30,7 +30,7 @@ class Scope {
 
 	public static function getPropertyScope() {
 		if (self::$property == null) {
-			self::$property = new Scope("Parameter");
+			self::$property = new Scope("Property");
 		}
 
 		return self::$property;

@@ -6,6 +6,10 @@ namespace analyser;
 require_once("ObjectTracker.php");
 require_once("model\Type.php");
 require_once("model\Scope.php");
+require_once("model\Instance.php");
+require_once("model\VariableName.php");
+require_once("model\ExecutionContext.php");
+
 
 class NameExtractor {
 	private $classes = array();
@@ -68,24 +72,30 @@ class NameExtractor {
 		   		//do not analyse NameExtractor
 		   		if ($that == $this)
 		   			continue;
-//var_dump($call);
 
 		   		$ro = new \ReflectionObject($that);
 		   		$props   = $ro->getProperties();
 
 		   		foreach ($props  as $property) {
 		   			$property->setAccessible(true);
-		   			$this->recordProperty(get_class($that), $property->name, $property->getValue($that));
+		   			$value = $property->getValue($that);
+		   			$ec = new ExecutionContext(get_class($that), "", Scope::getPropertyScope());
+		   			$ec->setDocumentation($property->getDocComment());
+		   			$this->recordVariable($ec, 
+		   									new VariableName($property->name), 
+		   									new Instance($value));
+
 		   			$property->setAccessible(false);
+
+
 		   		}
 
 		   	}
 
-		   	
+			
 
-
-			$functionName = $call["function"];
 		   	if (isset($call["args"])) {
+		   		$functionName = $call["function"];
 		   		if (isset($call["class"])) {
 		   			$className = $call["class"];
 		   			$ro = new \ReflectionClass($className);
@@ -93,10 +103,14 @@ class NameExtractor {
 
 
 					$rm->setAccessible(true);
-					$this->recordArguments($call["args"], $rm, "$className.$functionName()");
+					$ec = new ExecutionContext($className, $functionName, Scope::getParameterScope());
+					$ec->setDocumentation($rm->getDocComment());
+
+					$this->recordArguments($call["args"], $rm, $ec);
 		   		} else {
 		   			try {
-		   				if ($functionName != "" && $functionName != "require" && 
+		   				if ($functionName != "" && 
+		   					$functionName != "require" && 
 		   					$functionName != "require_once" &&
 		   					$functionName != "include" && 
 		   					$functionName != "wp_initial_constants") {
@@ -104,7 +118,7 @@ class NameExtractor {
 		   					if ($functionName != $this->functionName) {
 		   						$this->functionName = $functionName;
 				   				$rf = new \ReflectionFunction($functionName);
-				   				$this->recordArguments($call["args"], $rf, "$functionName()");
+				   				$this->recordArguments($call["args"], $rf, new ExecutionContext("", $functionName, Scope::getParameterScope()));
 			   				}
 		   				}
 		   			} catch (\ReflectionException $e) {
@@ -118,13 +132,15 @@ class NameExtractor {
 	   return TRUE;
 	}
 
-	private function recordArguments($arguments, $reflection, $className) {
+	private function recordArguments($arguments, \Reflector $reflection, ExecutionContext $className) {
 		$pa = $reflection->getParameters();
 
 		foreach ($arguments as $key => $variableValue) {
 		
 			if (isset($pa[$key])) {
-				$this->recordParameter($className, $pa[$key]->getName(), $variableValue);
+				//var_dump($pa[$key]->getClass());
+				$className->setTypeHint($pa[$key]->getClass());
+				$this->recordVariable($className, new VariableName($pa[$key]->getName()), new Instance($variableValue));
 			}
 		}
 	}
@@ -152,40 +168,32 @@ class NameExtractor {
 	}
 
 
-	private function recordParameter($className, $variableName, $value) {
-		$this->recordVariable(Scope::getParameterScope(), $className, $variableName, $value);
-	}
-
-	private function recordProperty($className, $variableName, $value) {
-		$this->recordVariable(Scope::getPropertyScope(), $className, $variableName, $value);
-	}
-
-	private function recordVariable(Scope $scope, $className, $variableName, $value) {
-		if (isset($this->classes[$className]) == false) {
-			$this->classes[$className] = array();
+	private function recordVariable(ExecutionContext $className, VariableName $variableName, Instance $value) {
+		if (isset($this->classes[$className->toString()]) == false) {
+			$this->classes[$className->toString()] = array();
 			
 		}
-		if (isset($this->classes[$className][$scope->toString()]) == false) {
-			$this->classes[$className][$scope->toString()] = array();
+		if (isset($this->classes[$className->toString()]) == false) {
+			$this->classes[$className->toString()][$scope->toString()] = array();
 		}
 
-		if (isset($this->classes[$className][$scope->toString()][$variableName] ) == false) {
-			$this->classes[$className][$scope->toString()][$variableName] = array();
+		if (isset($this->classes[$className->toString()][$variableName->toString()] ) == false) {
+			$this->classes[$className->toString()][$variableName->toString()] = array();
 		}
 
 		if ($value != null) {
 			//ignore array = true so only store an array in one variable...
-			$type = $this->getType($value);
+			$type = $value->getType();
 
-			if (is_object($value) == "object") {
-				$this->tracker->trackObject($value, $variableName, $className, $scope, $type);
+			if ($value->isObject()) {
+				$this->tracker->trackObject($value, $variableName, $className, $type);
 			}
 			
-			if (isset($this->classes[$className][$scope->toString()][$variableName][$type->toString()] ) == false) {
-				$this->classes[$className][$scope->toString()][$variableName][$type->toString()] = array();
+			if (isset($this->classes[$className->toString()][$variableName->toString()][$type->toString()] ) == false) {
+				$this->classes[$className->toString()][$variableName->toString()][$type->toString()] = array();
 			}
 			if ($type == "array"){
-				$this->addArrayTypes($this->classes[$className][$scope->toString()][$variableName][$type->toString()], $value);
+				$this->addArrayTypes($this->classes[$className->toString()][$variableName->toString()][$type->toString()], $value);
 			}
 		}
 	}
@@ -193,17 +201,7 @@ class NameExtractor {
 	
 
 	
-	/**
-	 * @param  String $value variable instance
-	 * @return Type
-	 */
-	private function getType($variableInstance) {
-		if (is_object($variableInstance) == "object") {
-			return new Type(get_class($variableInstance));
-		} else {
-			return new Type(gettype($variableInstance));
-		}
-	}
+	
 
 	private function addArrayTypes(&$ret, $values, $ignoreArray = false) {
 		if ($ignoreArray == false && 
