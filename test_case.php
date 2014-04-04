@@ -19,10 +19,11 @@
 		private $thatArrayProperty = null;
 
 		function __construct() {
+			$localVariable = "localVariable";
 			$this->thatString = "Daniel foo";
-			 $this->thatArrayProperty  = array();
-			 $this->thatArrayProperty[]= 0;
-			 $this->thatArrayProperty[]= "foo";
+			$this->thatArrayProperty  = array();
+			$this->thatArrayProperty[]= 0;
+			$this->thatArrayProperty[]= "foo";
 		}
 
 		function doSomeFunkyShit($thatParameter, SomeClass $thatSomeClassParameter) {

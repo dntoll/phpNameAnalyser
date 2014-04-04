@@ -6,6 +6,9 @@ namespace analyser;
 class NameExtractor {
 	private $classes = array();
 	private $filename = "variableNames.serialized";
+	private $functionName = "";
+
+	private $objects = array();
 
 	public function __construct() {
 		
@@ -13,6 +16,12 @@ class NameExtractor {
 			$oldData = file_get_contents($this->filename);
 			$this->classes = unserialize($oldData);
 		}
+
+
+	}
+
+	public function __destruct ( ) {
+		//$this->stop();
 	}
 
 	public function start() {
@@ -20,9 +29,6 @@ class NameExtractor {
 		
 		set_time_limit(2520);
 		register_tick_function(array(&$this, 'tick'), true);
-		declare(ticks=1);
-		$this->f = fopen("functionspy.txt", "a");
-		$this->functionName = "";
 	}
 
 	public function stop() {
@@ -31,24 +37,35 @@ class NameExtractor {
 		
 		file_put_contents($this->filename, serialize($this->classes));
 		$this->writeCSV();
-		fclose($this->f);
-		
+
+		var_dump($this->objects);
+	
 	}
 
 	public function tick($return = false)
 	{
 		
 		$bt = debug_backtrace();
-		
-	   
-	   foreach ($bt as $call) {
+		$callIndex = 0;
+		foreach ($bt as $call) {
+			$callIndex++;
+
+			//Do not go deeper since we have done that
+			if ($callIndex > 2)
+				continue;
+
+
+
 	   		//find member variables of objects
 		   	if (isset($call["object"])) {
 		   		//the this object 
 		   		$that = $call["object"];
 
+		   		//do not analyse NameExtractor
 		   		if ($that == $this)
 		   			continue;
+//var_dump($call);
+
 		   		$ro = new \ReflectionObject($that);
 		   		$props   = $ro->getProperties();
 
@@ -59,6 +76,9 @@ class NameExtractor {
 		   		}
 
 		   	}
+
+		   	
+
 
 			$functionName = $call["function"];
 		   	if (isset($call["args"])) {
@@ -76,17 +96,12 @@ class NameExtractor {
 		   					$functionName != "require_once" &&
 		   					$functionName != "include" && 
 		   					$functionName != "wp_initial_constants") {
-		   					//echo "ReflectionFunction $functionName \n";
-		   					//
 		   					
 		   					if ($functionName != $this->functionName) {
 		   						$this->functionName = $functionName;
-			   					//fwrite($this->f, $functionName . "\n");
-			   					
 				   				$rf = new \ReflectionFunction($functionName);
 				   				$this->recordArguments($call["args"], $rf, "$functionName()");
 			   				}
-			   				//
 		   				}
 		   			} catch (\ReflectionException $e) {
 
@@ -105,7 +120,6 @@ class NameExtractor {
 
 
 			if (isset($pa[$key])) {
-				//var_dump($pa[$key]->getClass());
 				$this->recordParameter($className, $pa[$key]->getName(), $variableValue);
 			}
 		}
@@ -157,6 +171,19 @@ class NameExtractor {
 			//ignore array = true so only store an array in one variable...
 			$type = $this->getType($value);
 
+			if (is_object($value) == "object") {
+				$objectRef = $this->getObjectRef($value);
+				if (isset($this->objects[$objectRef]) == false) {
+					$this->objects[$objectRef] = array();
+				}
+
+				if (isset($this->objects[$objectRef][$variableName]) == false) {
+					$this->objects[$objectRef][$variableName] = array();
+				}
+				$this->objects[$objectRef][$variableName][$className] = "$type object $objectRef was called $variableName in $className $scope";
+			}
+			
+
 
 			if (isset($this->classes[$className][$scope][$variableName][$type] ) == false) {
 				$this->classes[$className][$scope][$variableName][$type] = array();
@@ -167,10 +194,24 @@ class NameExtractor {
 		}
 	}
 
+	private function getObjectRef($object) {
+
+		ob_start();
+		var_dump($object);
+		$content = ob_get_clean();
+
+		$startpos = strpos($content, "[")+4; //remove [<i>
+		$objectRef = substr($content, $startpos, strpos($content, "]")-$startpos-4); //remove ]</i>
+		
+		return $objectRef;
+	}
+
 	private function getType($value) {
-		if (is_object($value) == "object")
+		if (is_object($value) == "object") {
+		
+
 			return get_class($value);
-		else {
+		} else {
 			return gettype($value);
 		}
 	}
