@@ -145,18 +145,17 @@ class NameExtractor {
 	public function writeCSV() {
 		$fileHandle = fopen($this->filename . ".csv", "w");
 
-		foreach( $this->classes as $className => $class) {
-			foreach( $class as $scope => $scopes) {
-				foreach( $scopes as $variableName => $types) {
-					foreach( $types as $type => $subtypes) {
-						
-						foreach( $subtypes as $subtype => $notUsed) {
-							$type .= "<" . $subtype . ">";
-						}
-						fwrite($fileHandle, "$className;$scope;$type;$variableName\n");
+		foreach( $this->classes as $className => $variables) {
+			foreach( $variables as $variableName => $types) {
+				foreach( $types as $type => $subtypes) {
+					
+					foreach( $subtypes as $subtype => $notUsed) {
+						$type .= "<" . $subtype . ">";
 					}
+					fwrite($fileHandle, "$className;$variableName;$type\n");
 				}
 			}
+			
 		}
 
 		fclose($fileHandle);
@@ -166,16 +165,16 @@ class NameExtractor {
 
 
 	private function recordVariable(AbstractExecutionContext $className, VariableName $variableName, Instance $value) {
-		if (isset($this->classes[$className->toString()]) == false) {
-			$this->classes[$className->toString()] = array();
+
+		$contextString = $className->getFunction();
+
+		if (isset($this->classes[$contextString]) == false) {
+			$this->classes[$contextString] = array();
 			
 		}
-		if (isset($this->classes[$className->toString()]) == false) {
-			$this->classes[$className->toString()][$scope->toString()] = array();
-		}
-
-		if (isset($this->classes[$className->toString()][$variableName->toString()] ) == false) {
-			$this->classes[$className->toString()][$variableName->toString()] = array();
+		
+		if (isset($this->classes[$contextString][$variableName->toString()] ) == false) {
+			$this->classes[$contextString][$variableName->toString()] = array();
 		}
 
 		if ($value != null) {
@@ -186,35 +185,25 @@ class NameExtractor {
 				$this->tracker->trackObject($value, $variableName, $className, $type);
 			}
 			
-			if (isset($this->classes[$className->toString()][$variableName->toString()][$type->toString()] ) == false) {
-				$this->classes[$className->toString()][$variableName->toString()][$type->toString()] = array();
+			if (isset($this->classes[$contextString][$variableName->toString()][$type->toString()] ) == false) {
+				$this->classes[$contextString][$variableName->toString()][$type->toString()] = array();
 			}
-			if ($type == "array"){
-				$this->addArrayTypes($this->classes[$className->toString()][$variableName->toString()][$type->toString()], $value);
-			}
-		}
-	}
 
-	
-
-	
-	
-
-	private function addArrayTypes(&$ret, $values, $ignoreArray = false) {
-		if ($ignoreArray == false && 
-			is_array ($values)) {
-
-			$types = array();
 			
-			foreach ($values as $key => $instValue) {
-				$types[$this->getType($instValue)] = true;
-			}
-			foreach ($types as $key => $instValue) {
-				$ret[$key] = $key;
+			$arrayTypes = $value->getArrayTypes();
+			foreach ($arrayTypes as $key => $value) {
+				$this->classes[$contextString][$variableName->toString()][$type->toString()][$value] = $value;
 			}
 			
 		}
 	}
+
+	
+
+	
+	
+
+	
 
 
 }

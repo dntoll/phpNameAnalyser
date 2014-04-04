@@ -35,4 +35,22 @@ class Instance {
 		
 		return $objectRef;
 	}
+
+	public function getArrayTypes() {
+		$ret = array();
+		if (is_array ($this->variableValue)) {
+
+			$types = array();
+			
+			foreach ($this->variableValue as $key => $instValue) {
+				$childInstance = new Instance($instValue);
+				$types[$childInstance->getType()->toString()] = true;
+			}
+			foreach ($types as $key => $instValue) {
+				$ret[$key] = $key;
+			}
+			
+		}
+		return $ret;
+	}
 }

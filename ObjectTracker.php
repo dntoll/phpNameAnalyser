@@ -15,7 +15,7 @@ class ObjectTracker {
 		if (isset($this->objects[$objectRef][$variableName->toString()]) == false) {
 			$this->objects[$objectRef][$variableName->toString()] = array();
 		}
-		$this->objects[$objectRef][$variableName->toString()][md5($className->toString())] =$className->toString();
+		$this->objects[$objectRef][$variableName->toString()][md5($className->toString($variableName))] =$className->toString($variableName);
 	}
 
 	public function writeCSV() {
@@ -24,7 +24,7 @@ class ObjectTracker {
 			foreach ($objectInstance as $name => $usages) {
 				foreach ($usages as $usage => $notUsed) {
 					fwrite($fileHandle, "$objectRef; $name; $usage \n");
-					var_dump("$objectRef; $name; $usage \n");
+					var_dump("$objectRef; $name; $notUsed \n");
 				}
 			}
 			

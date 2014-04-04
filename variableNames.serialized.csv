@@ -1,0 +1,11 @@
+SomeClass;thatString;string
+SomeClass;thatObject;NULL
+SomeClass;thatObject;SomeClass
+SomeClass;thatObject;SubClass
+SomeClass;thatArrayProperty;NULL
+SomeClass;thatArrayProperty;array<integer><string>
+SomeClass.doSomeFunkyShit;thatParameter;integer
+SomeClass.doSomeFunkyShit;thatSomeClassParameter;SomeClass
+SomeClass.doSomeFunkyShit;thatSomeClassParameter;SubClass
+SomeClass.doOtherFunkyShit;thatArrayParameter;array<integer><SomeClass><SubClass>
+rawFunction;rawFunctionParameter;string

@@ -10,14 +10,31 @@ namespace analyser;
 abstract class AbstractExecutionContext {
 
 	
-	protected $documentation = "";
+	private $documentation = "";
 
 	protected function setDocumentation($docs) {
 		if ($docs != null)
 			$this->documentation = $docs;	
 	}
 
-	public abstract function toString();
+	protected function getCommentOn(VariableName $variableName) {
+
+		$lines = explode("\n", $this->documentation);
+
+		$ret = "";
+		foreach ($lines as $line) {
+			if(strpos($line, "$". $variableName->toString()) !== FALSE) {
+				$ret .= "C[" . trim($line) . "]";
+			}
+		}
+
+		return $ret;
+	}
+
+	public abstract function toString(VariableName $variableName);
+
+	public abstract function getFunction();
+	public abstract function getScope();
 }
 
 class FunctionParameterContext extends AbstractExecutionContext {
@@ -26,7 +43,7 @@ class FunctionParameterContext extends AbstractExecutionContext {
 
 	public function setTypeHint($hint) {
 		if ($hint != null)
-			$this->parameterTypeHint = $hint->getName();
+			$this->parameterTypeHint = "T[" . $hint->getName() . "]";
 	}
 
 	public function __construct($function, $docs) {
@@ -37,8 +54,15 @@ class FunctionParameterContext extends AbstractExecutionContext {
 		$this->setDocumentation($docs);
 	}
 
-	public function toString() {
-		return $this->function . " " . $this->parameterTypeHint . " " . $this->documentation;
+	public function toString(VariableName $variableName) {
+		return $this->function . " " . $this->parameterTypeHint . " " . $this->getCommentOn($variableName);
+	}
+
+	public function getFunction() {
+		return $this->function;
+	}
+	public function getScope() {
+		return "parameter";
 	}
 }
 
@@ -54,8 +78,12 @@ class MethodParameterContext extends FunctionParameterContext{
 
 	}
 
-	public function toString() {
-		return $this->class . "." . $this->function . " " . $this->parameterTypeHint . " " . $this->documentation;
+	public function toString(VariableName $variableName) {
+		return $this->getFunction() . " " . $this->parameterTypeHint . " " . $this->getCommentOn($variableName);
+	}
+
+	public function getFunction() {
+		return $this->class . "." . $this->function;
 	}
 }
 
@@ -71,7 +99,14 @@ class PropertyContext extends AbstractExecutionContext{
 	}
 
 
-	public function toString() {
-		return $this->class  . " " . $this->documentation;
+	public function toString(VariableName $variableName) {
+		return $this->class  . " " . $this->getCommentOn($variableName);
+	}
+
+	public function getFunction() {
+		return $this->class;
+	}
+	public function getScope() {
+		return "property";
 	}
 }
