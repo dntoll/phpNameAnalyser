@@ -1,0 +1,11 @@
+a:8:{s:10:"SomeClass ";a:3:{s:10:"thatString";a:1:{s:6:"string";a:0:{}}s:10:"thatObject";a:3:{s:4:"NULL";a:0:{}s:9:"SomeClass";a:0:{}s:8:"SubClass";a:0:{}}s:17:"thatArrayProperty";a:2:{s:4:"NULL";a:0:{}s:5:"array";a:0:{}}}s:27:"SomeClass.doSomeFunkyShit  ";a:1:{s:13:"thatParameter";a:1:{s:7:"integer";a:0:{}}}s:36:"SomeClass.doSomeFunkyShit SomeClass ";a:1:{s:22:"thatSomeClassParameter";a:2:{s:9:"SomeClass";a:0:{}s:8:"SubClass";a:0:{}}}s:28:"SomeClass.doOtherFunkyShit  ";a:1:{s:18:"thatArrayParameter";a:1:{s:5:"array";a:0:{}}}s:2:"  ";a:1:{s:20:"rawFunctionParameter";a:1:{s:6:"string";a:0:{}}}s:13:"rawFunction  ";a:1:{s:20:"rawFunctionParameter";a:1:{s:6:"string";a:0:{}}}s:259:"SomeClass.doSomeFunkyShit  /**
+		 * [doSomeFunkyShit description]
+		 * @param  [type]    $thatParameter          [description]
+		 * @param  SomeClass $thatSomeClassParameter [description]
+		 * @return [type]                            [description]
+		 */";a:1:{s:13:"thatParameter";a:1:{s:7:"integer";a:0:{}}}s:268:"SomeClass.doSomeFunkyShit SomeClass /**
+		 * [doSomeFunkyShit description]
+		 * @param  [type]    $thatParameter          [description]
+		 * @param  SomeClass $thatSomeClassParameter [description]
+		 * @return [type]                            [description]
+		 */";a:1:{s:22:"thatSomeClassParameter";a:2:{s:9:"SomeClass";a:0:{}s:8:"SubClass";a:0:{}}}}

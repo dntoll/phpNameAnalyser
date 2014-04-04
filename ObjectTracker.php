@@ -6,7 +6,7 @@ class ObjectTracker {
 
 	private $objects = array();
 
-	public function trackObject(Instance $value, VariableName $variableName, ExecutionContext $className, Type $type) {
+	public function trackObject(Instance $value, VariableName $variableName, AbstractExecutionContext $className, Type $type) {
 		$objectRef = $type->toString() . "-" . $value->getObjectRef();
 		if (isset($this->objects[$objectRef]) == false) {
 			$this->objects[$objectRef] = array();
@@ -24,6 +24,7 @@ class ObjectTracker {
 			foreach ($objectInstance as $name => $usages) {
 				foreach ($usages as $usage => $notUsed) {
 					fwrite($fileHandle, "$objectRef; $name; $usage \n");
+					var_dump("$objectRef; $name; $usage \n");
 				}
 			}
 			

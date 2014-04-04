@@ -79,8 +79,7 @@ class NameExtractor {
 		   		foreach ($props  as $property) {
 		   			$property->setAccessible(true);
 		   			$value = $property->getValue($that);
-		   			$ec = new ExecutionContext(get_class($that), "", Scope::getPropertyScope());
-		   			$ec->setDocumentation($property->getDocComment());
+		   			$ec = new PropertyContext(get_class($that), $property->getDocComment());
 		   			$this->recordVariable($ec, 
 		   									new VariableName($property->name), 
 		   									new Instance($value));
@@ -100,11 +99,8 @@ class NameExtractor {
 		   			$className = $call["class"];
 		   			$ro = new \ReflectionClass($className);
 		   			$rm = $ro->getMethod($functionName);
-
-
 					$rm->setAccessible(true);
-					$ec = new ExecutionContext($className, $functionName, Scope::getParameterScope());
-					$ec->setDocumentation($rm->getDocComment());
+					$ec = new MethodParameterContext($className, $functionName, $rm->getDocComment());
 
 					$this->recordArguments($call["args"], $rm, $ec);
 		   		} else {
@@ -118,7 +114,8 @@ class NameExtractor {
 		   					if ($functionName != $this->functionName) {
 		   						$this->functionName = $functionName;
 				   				$rf = new \ReflectionFunction($functionName);
-				   				$this->recordArguments($call["args"], $rf, new ExecutionContext("", $functionName, Scope::getParameterScope()));
+				   				$ec = new FunctionParameterContext($functionName, $rf->getDocComment());
+				   				$this->recordArguments($call["args"], $rf, $ec);
 			   				}
 		   				}
 		   			} catch (\ReflectionException $e) {
@@ -132,7 +129,7 @@ class NameExtractor {
 	   return TRUE;
 	}
 
-	private function recordArguments($arguments, \Reflector $reflection, ExecutionContext $className) {
+	private function recordArguments($arguments, \Reflector $reflection, AbstractExecutionContext $className) {
 		$pa = $reflection->getParameters();
 
 		foreach ($arguments as $key => $variableValue) {
@@ -168,7 +165,7 @@ class NameExtractor {
 	}
 
 
-	private function recordVariable(ExecutionContext $className, VariableName $variableName, Instance $value) {
+	private function recordVariable(AbstractExecutionContext $className, VariableName $variableName, Instance $value) {
 		if (isset($this->classes[$className->toString()]) == false) {
 			$this->classes[$className->toString()] = array();
 			

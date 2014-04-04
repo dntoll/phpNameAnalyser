@@ -26,6 +26,12 @@
 			$this->thatArrayProperty[]= "foo";
 		}
 
+		/**
+		 * [doSomeFunkyShit description]
+		 * @param  [type]    $thatParameter          [description]
+		 * @param  SomeClass $thatSomeClassParameter [description]
+		 * @return [type]                            [description]
+		 */
 		function doSomeFunkyShit($thatParameter, SomeClass $thatSomeClassParameter) {
 			$this->thatObject = $thatSomeClassParameter;
 
