@@ -3,15 +3,19 @@
 namespace analyser;
 
 
+require_once("ObjectTracker.php");
+require_once("model\Type.php");
+require_once("model\Scope.php");
+
 class NameExtractor {
 	private $classes = array();
 	private $filename = "variableNames.serialized";
 	private $functionName = "";
-
-	private $objects = array();
+	private $tracker;
+	
 
 	public function __construct() {
-		
+		$this->tracker = new ObjectTracker();
 		if (file_exists($this->filename)) {
 			$oldData = file_get_contents($this->filename);
 			$this->classes = unserialize($oldData);
@@ -37,7 +41,7 @@ class NameExtractor {
 		
 		file_put_contents($this->filename, serialize($this->classes));
 		$this->writeCSV();
-
+		$this->tracker->writeCSV();
 		
 	
 	}
@@ -115,10 +119,10 @@ class NameExtractor {
 	}
 
 	private function recordArguments($arguments, $reflection, $className) {
+		$pa = $reflection->getParameters();
+
 		foreach ($arguments as $key => $variableValue) {
-			$pa = $reflection->getParameters();
-
-
+		
 			if (isset($pa[$key])) {
 				$this->recordParameter($className, $pa[$key]->getName(), $variableValue);
 			}
@@ -144,40 +148,29 @@ class NameExtractor {
 
 		fclose($fileHandle);
 
-		$fileHandle = fopen("objects.csv", "w");
-		foreach ($this->objects as $objectRef => $objectInstance) {
-			foreach ($objectInstance as $name => $usages) {
-				foreach ($usages as $usage => $notUsed) {
-					fwrite($fileHandle, "$objectRef; $name; $usage \n");
-				}
-			}
-			
-		}
-		var_dump($this->objects);
-
-		fclose($fileHandle);
+		
 	}
 
 
 	private function recordParameter($className, $variableName, $value) {
-		$this->recordVariable("parameter", $className, $variableName, $value);
+		$this->recordVariable(Scope::getParameterScope(), $className, $variableName, $value);
 	}
 
 	private function recordProperty($className, $variableName, $value) {
-		$this->recordVariable("property", $className, $variableName, $value);
+		$this->recordVariable(Scope::getPropertyScope(), $className, $variableName, $value);
 	}
 
-	private function recordVariable($scope, $className, $variableName, $value) {
+	private function recordVariable(Scope $scope, $className, $variableName, $value) {
 		if (isset($this->classes[$className]) == false) {
 			$this->classes[$className] = array();
 			
 		}
-		if (isset($this->classes[$className][$scope]) == false) {
-			$this->classes[$className][$scope] = array();
+		if (isset($this->classes[$className][$scope->toString()]) == false) {
+			$this->classes[$className][$scope->toString()] = array();
 		}
 
-		if (isset($this->classes[$className][$scope][$variableName] ) == false) {
-			$this->classes[$className][$scope][$variableName] = array();
+		if (isset($this->classes[$className][$scope->toString()][$variableName] ) == false) {
+			$this->classes[$className][$scope->toString()][$variableName] = array();
 		}
 
 		if ($value != null) {
@@ -185,47 +178,30 @@ class NameExtractor {
 			$type = $this->getType($value);
 
 			if (is_object($value) == "object") {
-				$objectRef = $type . "-" .$this->getObjectRef($value);
-				if (isset($this->objects[$objectRef]) == false) {
-					$this->objects[$objectRef] = array();
-				}
-
-				if (isset($this->objects[$objectRef][$variableName]) == false) {
-					$this->objects[$objectRef][$variableName] = array();
-				}
-				$this->objects[$objectRef][$variableName][$className . " $scope"] ="";
+				$this->tracker->trackObject($value, $variableName, $className, $scope, $type);
 			}
 			
-
-
-			if (isset($this->classes[$className][$scope][$variableName][$type] ) == false) {
-				$this->classes[$className][$scope][$variableName][$type] = array();
+			if (isset($this->classes[$className][$scope->toString()][$variableName][$type->toString()] ) == false) {
+				$this->classes[$className][$scope->toString()][$variableName][$type->toString()] = array();
 			}
 			if ($type == "array"){
-				$this->addArrayTypes($this->classes[$className][$scope][$variableName][$type], $value);
+				$this->addArrayTypes($this->classes[$className][$scope->toString()][$variableName][$type->toString()], $value);
 			}
 		}
 	}
 
-	private function getObjectRef($object) {
+	
 
-		ob_start();
-		var_dump($object);
-		$content = ob_get_clean();
-
-		$startpos = strpos($content, "[")+4; //remove [<i>
-		$objectRef = substr($content, $startpos, strpos($content, "]")-$startpos-4); //remove ]</i>
-		
-		return $objectRef;
-	}
-
-	private function getType($value) {
-		if (is_object($value) == "object") {
-		
-
-			return get_class($value);
+	
+	/**
+	 * @param  String $value variable instance
+	 * @return Type
+	 */
+	private function getType($variableInstance) {
+		if (is_object($variableInstance) == "object") {
+			return new Type(get_class($variableInstance));
 		} else {
-			return gettype($value);
+			return new Type(gettype($variableInstance));
 		}
 	}
 
