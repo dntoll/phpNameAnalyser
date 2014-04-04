@@ -38,7 +38,7 @@ class NameExtractor {
 		file_put_contents($this->filename, serialize($this->classes));
 		$this->writeCSV();
 
-		var_dump($this->objects);
+		
 	
 	}
 
@@ -143,6 +143,19 @@ class NameExtractor {
 		}
 
 		fclose($fileHandle);
+
+		$fileHandle = fopen("objects.csv", "w");
+		foreach ($this->objects as $objectRef => $objectInstance) {
+			foreach ($objectInstance as $name => $usages) {
+				foreach ($usages as $usage => $notUsed) {
+					fwrite($fileHandle, "$objectRef; $name; $usage \n");
+				}
+			}
+			
+		}
+		var_dump($this->objects);
+
+		fclose($fileHandle);
 	}
 
 
@@ -172,7 +185,7 @@ class NameExtractor {
 			$type = $this->getType($value);
 
 			if (is_object($value) == "object") {
-				$objectRef = $this->getObjectRef($value);
+				$objectRef = $type . "-" .$this->getObjectRef($value);
 				if (isset($this->objects[$objectRef]) == false) {
 					$this->objects[$objectRef] = array();
 				}
@@ -180,7 +193,7 @@ class NameExtractor {
 				if (isset($this->objects[$objectRef][$variableName]) == false) {
 					$this->objects[$objectRef][$variableName] = array();
 				}
-				$this->objects[$objectRef][$variableName][$className] = "$type object $objectRef was called $variableName in $className $scope";
+				$this->objects[$objectRef][$variableName][$className . " $scope"] ="";
 			}
 			
 
