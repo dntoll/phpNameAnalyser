@@ -29,7 +29,7 @@ class ObjectTracker {
 			}
 			
 		}
-		var_dump($this->objects);
+		//var_dump($this->objects);
 
 		fclose($fileHandle);
 	}

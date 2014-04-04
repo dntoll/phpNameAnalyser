@@ -73,57 +73,18 @@ class NameExtractor {
 		   		if ($that == $this)
 		   			continue;
 
-		   		$ro = new \ReflectionObject($that);
-		   		$props   = $ro->getProperties();
-
-		   		foreach ($props  as $property) {
-		   			$property->setAccessible(true);
-		   			$value = $property->getValue($that);
-		   			$ec = new PropertyContext(get_class($that), $property->getDocComment());
-		   			try {
-		   				$this->recordVariable($ec, 
-		   									new VariableName($property->name), 
-		   									new Instance($value));
-		   			} catch (\Exception $e) {
-
-		   			}
-		   			$property->setAccessible(false);
-
-
-		   		}
+		   		$this->addProperties($that);
 
 		   	}
 
 			
 
 		   	if (isset($call["args"])) {
-		   		$functionName = $call["function"];
+		   		
 		   		if (isset($call["class"])) {
-		   			$className = $call["class"];
-		   			$ro = new \ReflectionClass($className);
-		   			$rm = $ro->getMethod($functionName);
-					$rm->setAccessible(true);
-					$ec = new MethodParameterContext($className, $functionName, $rm->getDocComment());
-
-					$this->recordArguments($call["args"], $rm, $ec);
+		   			$this->addMethodParameters($call);
 		   		} else {
-		   			try {
-		   				if ($functionName != "" && 
-		   					$functionName != "require" && 
-		   					$functionName != "require_once" &&
-		   					$functionName != "include" && 
-		   					$functionName != "wp_initial_constants") {
-		   					
-		   					if ($functionName != $this->functionName) {
-		   						$this->functionName = $functionName;
-				   				$rf = new \ReflectionFunction($functionName);
-				   				$ec = new FunctionParameterContext($functionName, $rf->getDocComment());
-				   				$this->recordArguments($call["args"], $rf, $ec);
-			   				}
-		   				}
-		   			} catch (\ReflectionException $e) {
-
-		   			}
+		   			$this->addFunctionParameters($call);
 		   		}
 		   	}
 		}
@@ -131,6 +92,58 @@ class NameExtractor {
 		
 	   return TRUE;
 	}
+
+	private function addFunctionParameters($call) {
+		try {
+			$functionName = $call["function"];
+			if ($functionName != "" && 
+				$functionName != "require" && 
+				$functionName != "require_once" &&
+				$functionName != "include" && 
+				$functionName != "wp_initial_constants") {
+   					
+				if ($functionName != $this->functionName) {
+					$this->functionName = $functionName;
+	  				$rf = new \ReflectionFunction($functionName);
+	  				$ec = new FunctionParameterContext($functionName, $rf->getDocComment());
+		   			$this->recordArguments($call["args"], $rf, $ec);
+	   			}
+   			}
+   		} catch (\ReflectionException $e) {
+		}
+	}
+
+	private function addMethodParameters($call) {
+		$functionName = $call["function"];
+		$className = $call["class"];
+		$ro = new \ReflectionClass($className);
+		$rm = $ro->getMethod($functionName);
+		$rm->setAccessible(true);
+		$ec = new MethodParameterContext($className, $functionName, $rm->getDocComment());
+
+		$this->recordArguments($call["args"], $rm, $ec);
+	}
+
+	private function addProperties($that) {
+		$ro = new \ReflectionObject($that);
+   		$props   = $ro->getProperties();
+
+   		foreach ($props  as $property) {
+   			$property->setAccessible(true);
+   			$value = $property->getValue($that);
+   			$ec = new PropertyContext(get_class($that), $property->getDocComment());
+   			try {
+   				$this->recordVariable($ec, 
+   									new VariableName($property->name), 
+   									new Instance($value));
+   			} catch (\Exception $e) {
+
+   			}
+   			$property->setAccessible(false);
+   		}
+	}
+
+
 
 	private function recordArguments($arguments, \Reflector $reflection, AbstractExecutionContext $className) {
 		$pa = $reflection->getParameters();
