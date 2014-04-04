@@ -93,14 +93,15 @@ class NameExtractor {
 	   return TRUE;
 	}
 
-	private function addFunctionParameters($call) {
+	private function addFunctionParameters(&$call) {
 		try {
 			$functionName = $call["function"];
 			if ($functionName != "" && 
 				$functionName != "require" && 
 				$functionName != "require_once" &&
 				$functionName != "include" && 
-				$functionName != "wp_initial_constants") {
+				$functionName != "wp_initial_constants" &&
+				$functionName != "wp_plugin_directory_constants" ) {
    					
 				if ($functionName != $this->functionName) {
 					$this->functionName = $functionName;
@@ -113,7 +114,7 @@ class NameExtractor {
 		}
 	}
 
-	private function addMethodParameters($call) {
+	private function addMethodParameters(&$call) {
 		$functionName = $call["function"];
 		$className = $call["class"];
 		$ro = new \ReflectionClass($className);
@@ -124,22 +125,23 @@ class NameExtractor {
 		$this->recordArguments($call["args"], $rm, $ec);
 	}
 
-	private function addProperties($that) {
+	private function addProperties(&$that) {
 		$ro = new \ReflectionObject($that);
    		$props   = $ro->getProperties();
 
    		foreach ($props  as $property) {
    			$property->setAccessible(true);
    			$value = $property->getValue($that);
-   			$ec = new PropertyContext(get_class($that), $property->getDocComment());
-   			try {
-   				$this->recordVariable($ec, 
-   									new VariableName($property->name), 
-   									new Instance($value));
-   			} catch (\Exception $e) {
 
+   			if ($value != null) {
+	   			$ec = new PropertyContext(get_class($that), $property->getDocComment());
+	   			
+	   			$this->recordVariable($ec, 
+	   									new VariableName($property->name), 
+	   									new Instance($value));
+	   			
+	   			$property->setAccessible(false);
    			}
-   			$property->setAccessible(false);
    		}
 	}
 
@@ -150,14 +152,12 @@ class NameExtractor {
 
 		foreach ($arguments as $key => $variableValue) {
 		
-			if (isset($pa[$key])) {
+			if (isset($pa[$key]) && $variableValue != null) {
 				//var_dump($pa[$key]->getClass());
 				$className->setTypeHint($pa[$key]->getClass());
-				try {
-					$this->recordVariable($className, new VariableName($pa[$key]->getName()), new Instance($variableValue));
-				} catch (\Exception $e) {
-
-				}
+				
+				$this->recordVariable($className, new VariableName($pa[$key]->getName()), new Instance($variableValue));
+				
 			}
 		}
 	}
@@ -211,8 +211,8 @@ class NameExtractor {
 
 		
 		$arrayTypes = $value->getArrayTypes();
-		foreach ($arrayTypes as $key => $value) {
-			$this->classes[$contextString][$variableName->toString()][$type->toString()][$value] = $value;
+		foreach ($arrayTypes as $key => $typeInArray) {
+			$this->classes[$contextString][$variableName->toString()][$type->toString()][$typeInArray] = $typeInArray;
 		}
 			
 		
