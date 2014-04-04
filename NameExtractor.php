@@ -80,10 +80,13 @@ class NameExtractor {
 		   			$property->setAccessible(true);
 		   			$value = $property->getValue($that);
 		   			$ec = new PropertyContext(get_class($that), $property->getDocComment());
-		   			$this->recordVariable($ec, 
+		   			try {
+		   				$this->recordVariable($ec, 
 		   									new VariableName($property->name), 
 		   									new Instance($value));
+		   			} catch (\Exception $e) {
 
+		   			}
 		   			$property->setAccessible(false);
 
 
@@ -177,25 +180,25 @@ class NameExtractor {
 			$this->classes[$contextString][$variableName->toString()] = array();
 		}
 
-		if ($value != null) {
-			//ignore array = true so only store an array in one variable...
-			$type = $value->getType();
+		
+		//ignore array = true so only store an array in one variable...
+		$type = $value->getType();
 
-			if ($value->isObject()) {
-				$this->tracker->trackObject($value, $variableName, $className, $type);
-			}
-			
-			if (isset($this->classes[$contextString][$variableName->toString()][$type->toString()] ) == false) {
-				$this->classes[$contextString][$variableName->toString()][$type->toString()] = array();
-			}
-
-			
-			$arrayTypes = $value->getArrayTypes();
-			foreach ($arrayTypes as $key => $value) {
-				$this->classes[$contextString][$variableName->toString()][$type->toString()][$value] = $value;
-			}
-			
+		if ($value->isObject()) {
+			$this->tracker->trackObject($value, $variableName, $className, $type);
 		}
+		
+		if (isset($this->classes[$contextString][$variableName->toString()][$type->toString()] ) == false) {
+			$this->classes[$contextString][$variableName->toString()][$type->toString()] = array();
+		}
+
+		
+		$arrayTypes = $value->getArrayTypes();
+		foreach ($arrayTypes as $key => $value) {
+			$this->classes[$contextString][$variableName->toString()][$type->toString()][$value] = $value;
+		}
+			
+		
 	}
 
 	

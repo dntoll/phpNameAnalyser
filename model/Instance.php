@@ -6,6 +6,9 @@ class Instance {
 
 	public function __construct(&$variableValue) {
 		$this->variableValue = &$variableValue;
+		if ($variableValue == null) {
+			throw new \Exception("not an instance");
+		}
 	}
 
 	/**
