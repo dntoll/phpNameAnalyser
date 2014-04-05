@@ -4,11 +4,7 @@
  */
 
 	//To initialize the profiler
-	require_once("../NameExtractor.php");
-	$profiler = new \analyser\NameExtractor();
-	$profiler->start();
 	
-	declare(ticks=1);
 	//end of init
 	/**
 	* @param String $rawFunctionParameter4 A string
@@ -20,6 +16,5 @@
 	rawFunction("funky");
 
 
-	//
-	$profiler->stop();
+	
 ?>

@@ -3,12 +3,7 @@
  * This is a testcase for using the profiler
  */
 
-	//To initialize the profiler
-	require_once("../NameExtractor.php");
-	$profiler = new \analyser\NameExtractor();
-	$profiler->start();
 	
-	declare(ticks=1);
 	//end of init
 
 
@@ -58,14 +53,11 @@
 		private $property4String = "Daniel";
 	}
 
-	function rawFunction($rawFunctionParameter4) {
-		echo "$rawFunctionParameter4";
-	}
-
+	
 	$obj = new SomeClass();
 	$obj->doSomeFunkyShit(1, $obj);
 	$obj->doSomeFunkyShit(1, new Subclass());
-	rawFunction("funky");
+	
 
-	$profiler->stop();
+	
 ?>

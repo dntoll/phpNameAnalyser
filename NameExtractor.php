@@ -21,14 +21,13 @@ class NameExtractor {
 	private $tracker;
 	
 
-	public function __construct() {
+	public function __construct($doLoad = true, $file = "data/variableNames.serialized") {
+		$this->filename = $file;
 		$this->tracker = new ObjectTracker();
-		if (file_exists($this->filename)) {
+		if ($doLoad && file_exists($this->filename) ) {
 			$oldData = file_get_contents($this->filename);
 			$this->classes = unserialize($oldData);
 		}
-
-
 	}
 
 	public function __destruct ( ) {
@@ -44,7 +43,7 @@ class NameExtractor {
 
 	public function stop() {
 		//analysis done, show data
-		unregister_tick_function(array(&$profiler, 'tick'));
+		unregister_tick_function(array(&$this, 'tick'));
 		
 		file_put_contents($this->filename, serialize($this->classes));
 		$this->writeCSV();
@@ -225,34 +224,6 @@ class NameExtractor {
 		if ($value->isObject()) {
 			$this->tracker->trackObject($value, $variableName, $context, $type);
 		}
-
-		
-
-//var_dump($this->classes);
-		
-		/*
-		if (isset($this->classes[$contextString][$variableName->toString()] ) == false) {
-			$this->classes[$contextString][$variableName->toString()] = array();
-		}
-
-		
-		//ignore array = true so only store an array in one variable...
-		
-
-		
-		
-		if (isset($this->classes[$contextString][$variableName->toString()][$type->toString()] ) == false) {
-			$this->classes[$contextString][$variableName->toString()][$type->toString()] = array();
-
-		}
-
-		
-		
-		foreach ($arrayTypes as $key => $typeInArray) {
-			$this->classes[$contextString][$variableName->toString()][$type->toString()][$typeInArray] = $typeInArray;
-		}
-			
-		*/
 	}
 }
 
