@@ -1,0 +1,4 @@
+SomeClass-3; property2Object; SomeClass C[] 
+SomeClass-3; parameter2SomeClass; SomeClass.doSomeFunkyShit T[SomeClass]  
+SubClass-10; property2Object; SomeClass C[] 
+SubClass-10; parameter2SomeClass; SomeClass.doSomeFunkyShit T[SomeClass]  

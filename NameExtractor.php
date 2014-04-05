@@ -3,17 +3,19 @@
 namespace analyser;
 
 
-require_once("model\ObjectTracker.php");
-require_once("model\Type.php");
-require_once("model\Scope.php");
-require_once("model\Instance.php");
-require_once("model\VariableName.php");
-require_once("model\ExecutionContext.php");
+require_once("model/ObjectTracker.php");
+require_once("model/Type.php");
+require_once("model/Scope.php");
+require_once("model/Instance.php");
+require_once("model/VariableName.php");
+require_once("model/ExecutionContext.php");
+require_once("model/NamedTypeList.php");
+
 
 
 class NameExtractor {
 	private $classes = array();
-	private $filename = "variableNames.serialized";
+	private $filename = "data/variableNames.serialized";
 	private $functionName = "";
 	private $tracker;
 	
@@ -165,14 +167,18 @@ class NameExtractor {
 	public function writeCSV() {
 		$fileHandle = fopen($this->filename . ".csv", "w");
 
-		foreach( $this->classes as $className => $variables) {
-			foreach( $variables as $variableName => $types) {
-				foreach( $types as $type => $subtypes) {
+		//ini_set('xdebug.var_display_max_depth', 6 );
+		//xdebug_var_dump($this->classes );
+		foreach( $this->classes as $className => $context) {
+			$names = $context->getNames();
+			foreach($names  as $variableName => $name) {
+				$types = $name->getTypes();
+				foreach( $types as $typeName => $arrayTypes) {
 					
-					foreach( $subtypes as $subtype => $notUsed) {
-						$type .= "<" . $subtype . ">";
+					foreach( $arrayTypes as $subtype => $notUsed) {
+						$typeName .= "<" . $subtype . ">";
 					}
-					fwrite($fileHandle, "$className;$variableName;$type\n");
+					fwrite($fileHandle, "$className;$variableName;$typeName\n");
 				}
 			}
 			
@@ -184,38 +190,48 @@ class NameExtractor {
 	}
 
 
-	private function recordVariable(AbstractExecutionContext $className, VariableName $variableName, Instance $value) {
+	private function recordVariable(AbstractExecutionContext $context, VariableName $variableName, Instance $value) {
+		$type = $value->getType();
+		$arrayTypes = $value->getArrayTypes();
 
-		$contextString = $className->getFunction();
+		$name = $context->getByName($variableName);
 
-		if (isset($this->classes[$contextString]) == false) {
-			$this->classes[$contextString] = array();
-			
+		$name->addType($type, $arrayTypes);
+
+
+
+		if ($value->isObject()) {
+			$this->tracker->trackObject($value, $variableName, $context, $type);
 		}
+
+		$contextString = $context->getFunction();
+		$this->classes[$contextString] = $context;
+
+//var_dump($this->classes);
 		
+		/*
 		if (isset($this->classes[$contextString][$variableName->toString()] ) == false) {
 			$this->classes[$contextString][$variableName->toString()] = array();
 		}
 
 		
 		//ignore array = true so only store an array in one variable...
-		$type = $value->getType();
+		
 
-		if ($value->isObject()) {
-			$this->tracker->trackObject($value, $variableName, $className, $type);
-		}
+		
 		
 		if (isset($this->classes[$contextString][$variableName->toString()][$type->toString()] ) == false) {
 			$this->classes[$contextString][$variableName->toString()][$type->toString()] = array();
+
 		}
 
 		
-		$arrayTypes = $value->getArrayTypes();
+		
 		foreach ($arrayTypes as $key => $typeInArray) {
 			$this->classes[$contextString][$variableName->toString()][$type->toString()][$typeInArray] = $typeInArray;
 		}
 			
-		
+		*/
 	}
 }
 

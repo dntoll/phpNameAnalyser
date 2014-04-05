@@ -14,49 +14,49 @@
 
 	//test program starts
 	class SomeClass {
-		private $thatString = "Daniel";
-		private $thatObject = null;
-		private $thatArrayProperty = null;
+		private $property1String = "Daniel";
+		private $property2Object = null;
+		private $property3Array = null;
 
 		function __construct() {
 			$localVariable = "localVariable";
-			$this->thatString = "Daniel foo";
-			$this->thatArrayProperty  = array();
-			$this->thatArrayProperty[]= 0;
-			$this->thatArrayProperty[]= "foo";
+			$this->property1String = "Daniel foo";
+			$this->property3Array  = array();
+			$this->property3Array[]= 0;
+			$this->property3Array[]= "foo";
 		}
 
 		/**
 		 * [doSomeFunkyShit description]
-		 * @param  [type]    $thatParameter          [description]
+		 * @param  Integer    $parameter1Integer          [description]
 		 * @param  SomeClass $thatSomeClassParameter [description]
 		 * @return [type]                            [description]
 		 */
-		function doSomeFunkyShit($thatParameter, SomeClass $thatSomeClassParameter) {
-			$this->thatObject = $thatSomeClassParameter;
+		function doSomeFunkyShit($parameter1Integer, SomeClass $parameter2SomeClass) {
+			$this->property2Object = $parameter2SomeClass;
 
 			$array = array();
-			$array[] = $thatParameter + 1;
+			$array[] = $parameter1Integer + 1;
 			
-			$thatSomeClassParameter->doOtherFunkyShit($array);
-			$array[] = $thatSomeClassParameter;
-			$thatSomeClassParameter->doOtherFunkyShit($array);
+			$parameter2SomeClass->doOtherFunkyShit($array);
+			$array[] = $parameter2SomeClass;
+			$parameter2SomeClass->doOtherFunkyShit($array);
 		}
 
-		function doOtherFunkyShit($thatArrayParameter) {
+		function doOtherFunkyShit($parameter3SomeClass) {
 			$foo = "hello";
-			for ($x = 0; $x < $thatArrayParameter[0]; ++$x) {
-		         echo "$this->thatString \n";
+			for ($x = 0; $x < $parameter3SomeClass[0]; ++$x) {
+		         echo "$this->property1String \n";
 		   }
 		}
 	}
 
 	class SubClass extends SomeClass {
-
+		private $thatSubClassPropertyString = "Daniel";
 	}
 
-	function rawFunction($rawFunctionParameter) {
-		echo "$rawFunctionParameter";
+	function rawFunction($rawFunctionParameter4) {
+		echo "$rawFunctionParameter4";
 	}
 
 	$obj = new SomeClass();

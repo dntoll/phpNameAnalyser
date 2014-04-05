@@ -19,7 +19,7 @@ class ObjectTracker {
 	}
 
 	public function writeCSV() {
-		$fileHandle = fopen("objects.csv", "w");
+		$fileHandle = fopen("data/objects.csv", "w");
 		foreach ($this->objects as $objectRef => $objectInstance) {
 			foreach ($objectInstance as $name => $usages) {
 				foreach ($usages as $usage => $notUsed) {

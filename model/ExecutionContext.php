@@ -23,16 +23,37 @@ abstract class AbstractExecutionContext {
 
 	public abstract function getFunction();
 	public abstract function getScope();
+
+	private $names = array();
+	public function getByName(VariableName $name) {
+		if (isset($this->names[$name->toString()]) == false) {
+			$this->names[$name->toString()] = new NamedTypeList($name);	
+		}
+		
+		return $this->names[$name->toString()];
+	}
+
+	public function getNames() {
+		return $this->names;
+	}
+
+
 }
 
 class FunctionParameterContext extends AbstractExecutionContext {
 	protected $function;
 	protected $parameterTypeHint = "";
 
-	public function setTypeHint($hint) {
+
+	Type hints and variable names are on named Types?
+	The context collects the class or class-method or function
+	Maybe the NamedTypeList with better name should be the place for this 
+	it represent a name (param or property) or variable name?
+	The execution context could hold docs?
+	/*public function setTypeHint($hint) {
 		if ($hint != null)
 			$this->parameterTypeHint = "T[" . $hint->getName() . "]";
-	}
+	}*/
 
 	public function __construct($function, $docs) {
 		if (is_string($function) == false) {

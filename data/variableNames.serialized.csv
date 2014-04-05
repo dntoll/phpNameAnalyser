@@ -1,0 +1,6 @@
+SomeClass;property3Array;array<integer><string>
+SomeClass.doSomeFunkyShit;parameter1Integer;integer
+SomeClass.doSomeFunkyShit;parameter2SomeClass;SubClass
+SomeClass.doOtherFunkyShit;parameter3SomeClass;array<integer><SubClass>
+SubClass;thatSubClassPropertyString;string
+rawFunction;rawFunctionParameter4;string
