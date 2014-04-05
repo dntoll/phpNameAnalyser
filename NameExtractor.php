@@ -9,7 +9,8 @@ require_once("model/Scope.php");
 require_once("model/Instance.php");
 require_once("model/VariableName.php");
 require_once("model/ExecutionContext.php");
-require_once("model/NamedTypeList.php");
+require_once("model/VariableDeclaration.php");
+require_once("model/Comment.php");
 
 
 
@@ -108,8 +109,8 @@ class NameExtractor {
 				if ($functionName != $this->functionName) {
 					$this->functionName = $functionName;
 	  				$rf = new \ReflectionFunction($functionName);
-	  				$ec = new FunctionParameterContext($functionName, $rf->getDocComment());
-		   			$this->recordArguments($call["args"], $rf, $ec);
+	  				$ec = new FunctionParameterContext($functionName);
+		   			$this->recordArguments($call["args"], $rf, $ec, new Comment($rf->getDocComment()));
 	   			}
    			}
    		} catch (\ReflectionException $e) {
@@ -122,9 +123,9 @@ class NameExtractor {
 		$ro = new \ReflectionClass($className);
 		$rm = $ro->getMethod($functionName);
 		$rm->setAccessible(true);
-		$ec = new MethodParameterContext($className, $functionName, $rm->getDocComment());
+		$ec = new MethodParameterContext($className, $functionName);
 
-		$this->recordArguments($call["args"], $rm, $ec);
+		$this->recordArguments($call["args"], $rm, $ec, new Comment($rm->getDocComment()));
 	}
 
 	private function addProperties(&$that) {
@@ -136,11 +137,13 @@ class NameExtractor {
    			$value = $property->getValue($that);
 
    			if ($value != null) {
-	   			$ec = new PropertyContext(get_class($that), $property->getDocComment());
+	   			$ec = new ClassContext(get_class($that));
 	   			
 	   			$this->recordVariable($ec, 
 	   									new VariableName($property->name), 
-	   									new Instance($value));
+	   									new Instance($value),
+	   									"",
+	   									new Comment($property->getDocComment()));
 	   			
 	   			$property->setAccessible(false);
    			}
@@ -149,16 +152,22 @@ class NameExtractor {
 
 
 
-	private function recordArguments($arguments, \Reflector $reflection, AbstractExecutionContext $className) {
+	private function recordArguments($arguments, 
+									\Reflector $reflection, 
+									AbstractExecutionContext $className, 
+									Comment $comment) {
 		$pa = $reflection->getParameters();
 
 		foreach ($arguments as $key => $variableValue) {
 		
 			if (isset($pa[$key]) && $variableValue != null) {
-				//var_dump($pa[$key]->getClass());
-				$className->setTypeHint($pa[$key]->getClass());
 				
-				$this->recordVariable($className, new VariableName($pa[$key]->getName()), new Instance($variableValue));
+				$name = new VariableName($pa[$key]->getName());
+				$this->recordVariable($className, 
+									  	$name, 
+									  	new Instance($variableValue), 
+									  	$pa[$key]->getClass(),
+									  	$comment->getCommentOn($name));
 				
 			}
 		}
@@ -167,18 +176,23 @@ class NameExtractor {
 	public function writeCSV() {
 		$fileHandle = fopen($this->filename . ".csv", "w");
 
-		//ini_set('xdebug.var_display_max_depth', 6 );
-		//xdebug_var_dump($this->classes );
+		ini_set('xdebug.var_display_max_depth', 6 );
+		xdebug_var_dump($this->classes );
 		foreach( $this->classes as $className => $context) {
 			$names = $context->getNames();
 			foreach($names  as $variableName => $name) {
 				$types = $name->getTypes();
+				$comment = $name->getCommentOn($name->getName());
+				
+
 				foreach( $types as $typeName => $arrayTypes) {
+
 					
 					foreach( $arrayTypes as $subtype => $notUsed) {
 						$typeName .= "<" . $subtype . ">";
 					}
-					fwrite($fileHandle, "$className;$variableName;$typeName\n");
+
+					fwrite($fileHandle, "$className;$variableName;$typeName;" . $comment->toString() .";T[" .  $name->getTypeHint() . "]\n");
 				}
 			}
 			
@@ -190,22 +204,29 @@ class NameExtractor {
 	}
 
 
-	private function recordVariable(AbstractExecutionContext $context, VariableName $variableName, Instance $value) {
+	private function recordVariable(AbstractExecutionContext $context, VariableName $variableName, Instance $value, $typeHint, Comment $comment) {
+		$contextString = $context->getFunction();
+		if (isset($this->classes[$contextString]) == false)  {
+			$this->classes[$contextString] = $context;
+		} else {
+			$context = $this->classes[$contextString];
+		}
+
+
 		$type = $value->getType();
 		$arrayTypes = $value->getArrayTypes();
 
-		$name = $context->getByName($variableName);
+		$nameTypeList = $context->getByName($variableName, $comment);
 
-		$name->addType($type, $arrayTypes);
+		$nameTypeList->addType($type, $arrayTypes);
 
-
+		$nameTypeList->setTypeHint($typeHint);
 
 		if ($value->isObject()) {
 			$this->tracker->trackObject($value, $variableName, $context, $type);
 		}
 
-		$contextString = $context->getFunction();
-		$this->classes[$contextString] = $context;
+		
 
 //var_dump($this->classes);
 		

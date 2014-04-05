@@ -4,7 +4,7 @@
  */
 
 	//To initialize the profiler
-	require_once("NameExtractor.php");
+	require_once("../NameExtractor.php");
 	$profiler = new \analyser\NameExtractor();
 	$profiler->start();
 	
@@ -14,6 +14,9 @@
 
 	//test program starts
 	class SomeClass {
+		/**
+		* @var String
+		*/
 		private $property1String = "Daniel";
 		private $property2Object = null;
 		private $property3Array = null;
@@ -29,7 +32,7 @@
 		/**
 		 * [doSomeFunkyShit description]
 		 * @param  Integer    $parameter1Integer          [description]
-		 * @param  SomeClass $thatSomeClassParameter [description]
+		 * @param  SomeClass $parameter2SomeClass [description]
 		 * @return [type]                            [description]
 		 */
 		function doSomeFunkyShit($parameter1Integer, SomeClass $parameter2SomeClass) {
@@ -43,16 +46,16 @@
 			$parameter2SomeClass->doOtherFunkyShit($array);
 		}
 
-		function doOtherFunkyShit($parameter3SomeClass) {
+		function doOtherFunkyShit(array $parameter3ArrayWithTypeHint) {
 			$foo = "hello";
-			for ($x = 0; $x < $parameter3SomeClass[0]; ++$x) {
+			for ($x = 0; $x < $parameter3ArrayWithTypeHint[0]; ++$x) {
 		         echo "$this->property1String \n";
 		   }
 		}
 	}
 
 	class SubClass extends SomeClass {
-		private $thatSubClassPropertyString = "Daniel";
+		private $property4String = "Daniel";
 	}
 
 	function rawFunction($rawFunctionParameter4) {
