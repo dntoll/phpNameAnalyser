@@ -11,7 +11,7 @@ require_once("model/VariableName.php");
 require_once("model/ExecutionContext.php");
 require_once("model/VariableDeclaration.php");
 require_once("model/Comment.php");
-
+require_once("../phpLoggerLib/Logger.php");
 
 
 class NameExtractor {
@@ -97,6 +97,7 @@ class NameExtractor {
 
 	private function addFunctionParameters(&$call) {
 		try {
+			
 			$functionName = $call["function"];
 			if ($functionName != "" && 
 				$functionName != "require" && 
@@ -175,8 +176,8 @@ class NameExtractor {
 	public function writeCSV() {
 		$fileHandle = fopen($this->filename . ".csv", "w");
 
-		ini_set('xdebug.var_display_max_depth', 6 );
-		xdebug_var_dump($this->classes );
+		//ini_set('xdebug.var_display_max_depth', 6 );
+		//xdebug_var_dump($this->classes );
 		foreach( $this->classes as $className => $context) {
 			$names = $context->getNames();
 			foreach($names  as $variableName => $name) {
@@ -192,6 +193,13 @@ class NameExtractor {
 					}
 
 					fwrite($fileHandle, "$className;$variableName;$typeName;" . $comment->toString() .";T[" .  $name->getTypeHint() . "]\n");
+
+					loggThis("found variable in $className", array(	"context" => $className, 
+																	"name" => $variableName, 
+																	"dynamic type" => $typeName, 
+																	"dynamic_subtype" => $arrayTypes,
+																	"comment"=>$comment, 
+																	"typehint" => $name->getTypeHint()), false);
 				}
 			}
 			
