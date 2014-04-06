@@ -34,4 +34,4 @@ if ($handle = opendir('tests')) {
 	throw new Exception("unable to find tests");
 }
 
-dumpLog(false);
+echoLog(false);
