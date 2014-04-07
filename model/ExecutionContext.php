@@ -41,7 +41,7 @@ class FunctionParameterContext extends AbstractExecutionContext {
 	}
 
 	public function toString(VariableName $variableName) {
-		return $this->function . " " . $this->getCommentOn($variableName);
+		return $this->function;
 	}
 
 	public function getFunction() {
