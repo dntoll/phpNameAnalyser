@@ -16,14 +16,14 @@ require_once("../phpLoggerLib/Logger.php");
 
 class NameExtractor {
 	private $classes = array();
-	private $filename = "data/variableNames.serialized";
+	private $filename = "data/variableNames";
 	private $functionName = "";
 	private $tracker;
 	
 
-	public function __construct($doLoad = true, $file = "data/variableNames.serialized") {
+	public function __construct($doLoad = true, $file = "data/variableNames") {
 		$this->filename = $file;
-		$this->tracker = new ObjectTracker();
+		$this->tracker = new ObjectTracker($file . "_objects");
 		if ($doLoad && file_exists($this->filename) ) {
 			$oldData = file_get_contents($this->filename);
 			$this->classes = unserialize($oldData);
@@ -230,7 +230,7 @@ class NameExtractor {
 		$nameTypeList->setTypeHint($typeHint);
 
 		if ($value->isObject()) {
-			$this->tracker->trackObject($value, $variableName, $context, $type);
+			$this->tracker->trackObject($value, $variableName, $context, $type, $nameTypeList);
 		}
 	}
 }

@@ -8,8 +8,6 @@ namespace analyser;
  * The class and function
  */
 abstract class AbstractExecutionContext {
-	public abstract function toString(VariableName $variableName);
-
 	public abstract function getFunction();
 	public abstract function getScope();
 
@@ -40,10 +38,6 @@ class FunctionParameterContext extends AbstractExecutionContext {
 		$this->function = $function;
 	}
 
-	public function toString(VariableName $variableName) {
-		return $this->function;
-	}
-
 	public function getFunction() {
 		return $this->function;
 	}
@@ -66,10 +60,6 @@ class MethodParameterContext extends FunctionParameterContext{
 
 	}
 
-	public function toString(VariableName $variableName) {
-		return $this->getFunction();
-	}
-
 	public function getFunction() {
 		return $this->class . "." . $this->function;
 	}
@@ -85,11 +75,6 @@ class ClassContext extends AbstractExecutionContext{
 			throw new \Exception("Should be string");
 		}
 		$this->class = $class;
-	}
-
-
-	public function toString(VariableName $variableName) {
-		return $this->class;
 	}
 
 	public function getFunction() {
