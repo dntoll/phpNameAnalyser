@@ -28,6 +28,20 @@ function assertVariable(array $contexts, $functionName, $parameterName, $paramet
         }
     }
     if(isset($expectedSubtypeArray)) {
+        $arrayOfSubTypes = $parameter->getTypes();
+
+        //var_dump($arrayOfSubTypes);
+       // var_dump($expectedSubtypeArray);
+        foreach ($expectedSubtypeArray as $expectedType) {
+            $found = false;
+            foreach ($arrayOfSubTypes as $subtypes) {
+                foreach ($subtypes as $subtype) {
+                    if ($expectedType == $subtype)
+                        $found = true;
+                }
+            }
+            assert($found);
+        }
     }
     
 }

@@ -60,6 +60,30 @@ class Instance {
 				$ret[$key] = $key;
 			}
 			
+		} else if (is_object($this->variableValue)) {
+
+			$refC = new \ReflectionClass(get_class($this->variableValue));
+
+			$interfaces = $refC->getInterfaceNames();
+			$parents = array();
+
+			$class = $refC;
+			while ($parent = $class->getParentClass()) {
+			    $parents[] = $parent->getName();
+			    $class = $parent;
+			}
+
+			$types = array();
+			
+			foreach ($interfaces as $interface) {
+				$types[$interface] = true;
+			}
+			foreach ($parents as $interface) {
+				$types[$interface] = true;
+			}
+			foreach ($types as $key => $instValue) {
+				$ret[$key] = $key;
+			}
 		}
 		return $ret;
 	}
