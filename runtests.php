@@ -7,7 +7,7 @@ require_once("NameExtractor.php");
 loggThis("Starting tests");
 
 
-function assertVariable(array $contexts, $functionName, $parameterName, $parameterTypeHint, $expectedDynamicTypes) {
+function assertVariable(array $contexts, $functionName, $parameterName, $parameterTypeHint, $expectedDynamicTypes, array $expectedSubtypeArray = NULL) {
     $functionContext = $contexts[$functionName];
     assert($functionContext->getFunction() == $functionName);
     $variables = $functionContext->getDeclarations();
@@ -27,6 +27,9 @@ function assertVariable(array $contexts, $functionName, $parameterName, $paramet
             assert($found);
         }
     }
+    if(isset($expectedSubtypeArray)) {
+    }
+    
 }
 	
 if ($handle = opendir('tests')) {
