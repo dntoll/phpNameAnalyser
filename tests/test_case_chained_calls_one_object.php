@@ -23,6 +23,9 @@ class AClass {}
 
 
 
-
-	
-?>
+	function assert_chained_calls_one_object(\analyser\NameExtractor $extractor) {
+		
+		$contexts = $extractor->getContexts();
+		assertVariable($contexts, "function2()", "parameter", "AClass", array("AClass"));
+		assertVariable($contexts, "function1()", "parameter", "AClass", array("AClass"));
+	}

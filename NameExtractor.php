@@ -5,7 +5,7 @@ namespace analyser;
 
 require_once("model/ObjectTracker.php");
 require_once("model/Type.php");
-require_once("model/Scope.php");
+//require_once("model/Scope.php");
 require_once("model/Instance.php");
 require_once("model/VariableName.php");
 require_once("model/ExecutionContext.php");
@@ -28,6 +28,13 @@ class NameExtractor {
 			$oldData = file_get_contents($this->filename);
 			$this->classes = unserialize($oldData);
 		}
+	}
+
+	public function getContexts() {
+		return $this->classes;
+	}
+	public function getObjects() {
+		return $this->tracker->getObjects();
 	}
 
 	public function __destruct ( ) {
@@ -108,10 +115,10 @@ class NameExtractor {
 				$functionName != "wp_plugin_directory_constants" ) {
    					
 				//if ($functionName != $this->functionName) {
-					$this->functionName = $functionName;
-	  				$rf = new \ReflectionFunction($functionName);
-	  				$ec = new FunctionParameterContext($functionName);
-		   			$this->recordArguments($call["args"], $rf, $ec, new Comment($rf->getDocComment()));
+				$this->functionName = $functionName;
+  				$rf = new \ReflectionFunction($functionName);
+  				$ec = new FunctionParameterContext($functionName);
+	   			$this->recordArguments($call["args"], $rf, $ec, new Comment($rf->getDocComment()));
 	   			//}
    			}
    		} catch (\ReflectionException $e) {
@@ -154,7 +161,7 @@ class NameExtractor {
 
 
 	private function recordArguments($arguments, 
-									\Reflector $reflection, 
+									\ReflectionFunctionAbstract $reflection, 
 									AbstractExecutionContext $className, 
 									Comment $comment) {
 		$pa = $reflection->getParameters();
@@ -164,10 +171,21 @@ class NameExtractor {
 			if (isset($pa[$key]) && $variableValue != null) {
 				
 				$name = new VariableName($pa[$key]->getName());
+
+
+				$typehint = $pa[$key]->getClass();
+				if ($typehint == NULL && $pa[$key]->isArray()) {
+					$typehint = "array";
+				} else if ($typehint != NULL) {
+					$typehint = $typehint->getName();
+				}
+
+				
+
 				$this->recordVariable($className, 
 									  	$name, 
 									  	new Instance($variableValue), 
-									  	$pa[$key]->getClass(),
+									  	$typehint,
 									  	$comment->getCommentOn($name));
 				
 			}
@@ -180,10 +198,10 @@ class NameExtractor {
 		//ini_set('xdebug.var_display_max_depth', 6 );
 		//xdebug_var_dump($this->classes );
 		foreach( $this->classes as $className => $context) {
-			$names = $context->getNames();
+			$names = $context->getDeclarations();
 			foreach($names  as $variableName => $name) {
 				$types = $name->getTypes();
-				$comment = $name->getCommentOn($name->getName());
+				$comment = $name->getComment($name->getName());
 				
 
 				foreach( $types as $typeName => $arrayTypes) {

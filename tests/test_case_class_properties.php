@@ -22,3 +22,13 @@ class ThreeProperties {
 }
 
 new ThreeProperties();
+
+	function assert_class_properties(\analyser\NameExtractor $extractor) {
+		
+		$contexts = $extractor->getContexts();
+		$str = $contexts["ThreeProperties"]->getDeclarations();
+		//var_dump($str['property_1_StringWithComment']);
+		assertVariable($contexts, "ThreeProperties", "property_1_StringWithComment", "", array("string"));
+		assertVariable($contexts, "ThreeProperties", "property_2_ExampleClass", "", array("ExampleClass"));
+		assertVariable($contexts, "ThreeProperties", "property_3_Array", "", array("array"));
+	}

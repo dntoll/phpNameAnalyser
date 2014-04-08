@@ -15,5 +15,10 @@
 	test_case_array_hint(array("funky"));
 
 
-	
-?>
+	function assert_array_hint(\analyser\NameExtractor $extractor) {
+
+		$contexts = $extractor->getContexts();
+
+		assertVariable($contexts, "test_case_array_hint()", "arrayParameter", "array", array("array"));
+		
+	}

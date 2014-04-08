@@ -5,10 +5,38 @@ require_once("../phpLoggerLib/Logger.php");
 require_once("NameExtractor.php");
 
 loggThis("Starting tests");
+
+
+function assertVariable(array $contexts, $functionName, $parameterName, $parameterTypeHint, $expectedDynamicTypes) {
+    $functionContext = $contexts[$functionName];
+    assert($functionContext->getFunction() == $functionName);
+    $variables = $functionContext->getDeclarations();
+    $parameter = $variables[$parameterName];
+    assert($parameter->getName()->toString() == $parameterName);
+    assert($parameter->getTypeHint() == $parameterTypeHint);
+
+
+    if(isset($expectedDynamicTypes)) {
+        $dynamicTypes = $parameter->getTypes();
+        foreach ($expectedDynamicTypes as $expectedType) {
+            $found = false;
+            foreach ($dynamicTypes as $key => $type) {
+                if ($expectedType == $key)
+                    $found = true;
+            }
+            assert($found);
+        }
+    }
+}
 	
 if ($handle = opendir('tests')) {
 	while (false !== ($entry = readdir($handle))) {
         if ($entry != "." && $entry != "..") {
+
+            //can run single TC by 
+            //runtests.php?test=test_case_array_hint.php
+            if (isset($_GET["test"]) && $_GET["test"] != $entry)
+                continue;
 
         	if (strpos($entry, "test_") !== FALSE) {
 
@@ -21,6 +49,11 @@ if ($handle = opendir('tests')) {
             	require_once("tests/" . $entry);
 
             	$profiler->stop();
+
+                $noTest_ = substr($entry, 10); //remove "test_case_"
+                $nodotPHP = substr($noTest_, 0, strlen($noTest_) - 4); //remove ".php"
+
+                call_user_func("assert_" . $nodotPHP, $profiler);
             }
         }
     }

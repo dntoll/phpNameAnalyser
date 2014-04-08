@@ -23,8 +23,9 @@ class VariableDeclaration {
 		$this->types[$type->toString()] = $arrayTypes;
 	}
 
-	public function setTypeHint($typeHint) {
-		$this->typeHint = $typeHint;
+	public function setTypeHint($typeHintString) {
+		$this->typeHint = $typeHintString;
+
 	}
 
 	public function getTypes() {
@@ -41,12 +42,12 @@ class VariableDeclaration {
 
 	public function getTypeHint() {
 		if ($this->typeHint != null)
-			return $this->typeHint->getName();
+			return $this->typeHint;
 		else
 			return "";
 	}
 
-	public function getCommentOn() {
+	public function getComment() {
 		return $this->comment;
 	}
 }

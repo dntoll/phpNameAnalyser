@@ -29,5 +29,10 @@ $obj = new ParameterTestClass();
 $obj->methodWith2Parameters(1, new ExampleParameterClass());
 	
 
+function assert_parameters(\analyser\NameExtractor $extractor) {
+		
+	$contexts = $extractor->getContexts();
+	assertVariable($contexts, "ParameterTestClass.methodWith2Parameters()", "parameter1Integer", "", array("integer"));
+	assertVariable($contexts, "ParameterTestClass.methodWith2Parameters()", "parameter2SomeClass", "ExampleParameterClass", array("ExampleParameterClass"));
 	
-?>
+}

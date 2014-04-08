@@ -11,18 +11,18 @@ abstract class AbstractExecutionContext {
 	public abstract function getFunction();
 	public abstract function getScope();
 
-	private $names = array();
+	private $variableDeclarations = array();
 
 	public function getByName(VariableName $name, Comment $comment) {
-		if (isset($this->names[$name->toString()]) == false) {
-			$this->names[$name->toString()] = new VariableDeclaration($name, $comment, $this);	
+		if (isset($this->variableDeclarations[$name->toString()]) == false) {
+			$this->variableDeclarations[$name->toString()] = new VariableDeclaration($name, $comment, $this);	
 		}
 		
-		return $this->names[$name->toString()];
+		return $this->variableDeclarations[$name->toString()];
 	}
 
-	public function getNames() {
-		return $this->names;
+	public function getDeclarations() {
+		return $this->variableDeclarations;
 	}
 
 

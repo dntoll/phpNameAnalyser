@@ -12,6 +12,10 @@ class ObjectTracker {
 		$this->saveFile = $fileName;
 	}
 
+	public function getObjects() {
+		return $this->objects;
+	}
+
 	public function trackObject(Instance $instance, VariableDeclaration $decl) {
 		$type = $instance->getType();
 		$ref = $instance->getObjectRef();
@@ -23,6 +27,7 @@ class ObjectTracker {
 
 		if (isset($this->objects[$objectRef][$decl->getContextFunction()]) == false) {
 			$this->objects[$objectRef][$decl->getContextFunction()] = $decl;
+
 
 			loggThis("tracked object " . $type->toString(). " " . $decl->getName()->toString() . " [$ref] in " . $decl->getContextFunction());
 		}
