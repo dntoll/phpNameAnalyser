@@ -11,10 +11,12 @@ class VariableDeclaration {
 	private $types = array();
 	private $typeHint;
 	private $comment;
+	private $context;
 
-	public function __construct(VariableName $name, Comment $comment) {
+	public function __construct(VariableName $name, Comment $comment, AbstractExecutionContext $context) {
 		$this->name = $name;
 		$this->comment = $comment;
+		$this->context = $context;
 	}
 
 	public function addType(Type $type, $arrayTypes) {
@@ -27,6 +29,10 @@ class VariableDeclaration {
 
 	public function getTypes() {
 		return $this->types;
+	}
+
+	public function getContextFunction() {
+		return $this->context->getFunction();
 	}
 
 	public function getName() {

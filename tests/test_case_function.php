@@ -1,19 +1,15 @@
 <?php
-/*
- * This is a testcase for using the profiler
- */
 
-	//To initialize the profiler
 	
-	//end of init
+
 	/**
-	* @param String $rawFunctionParameter4 A string
+	* @param String $documentedStringParameter A string parameter
 	*/
-	function rawFunction($rawFunctionParameter4) {
-		echo "$rawFunctionParameter4";
+	function functionWithOneStringParameter($documentedStringParameter) {
+		echo "$documentedStringParameter";
 	}
 
-	rawFunction("funky");
+	functionWithOneStringParameter("funky");
 
 
 	

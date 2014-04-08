@@ -1,6 +1,7 @@
 <?php
 /*
  * This is a testcase for using the extractor
+ * This particular test does not work
  */
 	
 	//end of init

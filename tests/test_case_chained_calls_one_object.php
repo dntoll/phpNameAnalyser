@@ -1,22 +1,27 @@
 <?php
-/*
- * This is a testcase for using the extractor
- */
-	
+
+
+class AClass {}
+
 	//end of init
 	/**
-	* @param Exception $exception An Exception
+	* @param AClass $parameter An AClass instance
 	*/
-	function function1(Exception $exception) {
-		function2($exception);
+	function function1(AClass $parameter) {
+		function2($parameter);
 	}
 
-	function function2(Exception $exception) {
+	/**
+	* @param AClass $parameter An AClass instance
+	*/
+	function function2(AClass $parameter) {
 		echo "in Method";
 	}
 
-	$object = new Exception();
+	$object = new AClass();
 	function1($object );
+
+
 
 
 	

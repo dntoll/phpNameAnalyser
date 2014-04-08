@@ -15,7 +15,7 @@ abstract class AbstractExecutionContext {
 
 	public function getByName(VariableName $name, Comment $comment) {
 		if (isset($this->names[$name->toString()]) == false) {
-			$this->names[$name->toString()] = new VariableDeclaration($name, $comment);	
+			$this->names[$name->toString()] = new VariableDeclaration($name, $comment, $this);	
 		}
 		
 		return $this->names[$name->toString()];
@@ -39,7 +39,7 @@ class FunctionParameterContext extends AbstractExecutionContext {
 	}
 
 	public function getFunction() {
-		return $this->function;
+		return $this->function . "()";
 	}
 	public function getScope() {
 		return "parameter";
@@ -61,7 +61,7 @@ class MethodParameterContext extends FunctionParameterContext{
 	}
 
 	public function getFunction() {
-		return $this->class . "." . $this->function;
+		return $this->class . "." . $this->function . "()";
 	}
 
 

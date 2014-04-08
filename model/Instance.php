@@ -6,9 +6,6 @@ class Instance {
 
 	public function __construct(&$variableValue) {
 		$this->variableValue = &$variableValue;
-		/*if ($variableValue == null) {
-			throw new \Exception("not an instance");
-		}*/
 	}
 
 	/**
@@ -32,32 +29,21 @@ class Instance {
 		ob_start();
 		var_dump($this->variableValue);
 		$content = ob_get_clean();
-
-
-		/*echo "[";
-		var_dump($this->variableValue);
-		echo "]";*/
-
+		//Two different outputs with and without HTML tags
 		//object(Exception)[20]
 		//object(Exception)#20 (7)
-		//
+
 		$startOfString = "object(" . get_class($this->variableValue) . ")";
 		
 		$content = trim(strip_tags($content)); //remove xdebug tags
 
-		//echo "[$startOfString] and [$content]";
 		$contentWithoutStartString = substr($content, strlen($startOfString) + 1); 
 		return intval($contentWithoutStartString);
 
-		/*$startpos = strpos($content, "[")+4; //remove [<i>
-		$objectRef = substr($content, $startpos, strpos($content, "]")-$startpos-4); //remove ]</i>
+	}
 
-		if (is_numeric($objectRef) == FALSE) {
-			//object(Exception)#20
-			throw new \Exception($this->variableValue);
-		}
-		
-		return $objectRef;*/
+	public function getValue() {
+		return $this->variableValue;
 	}
 
 	public function getArrayTypes() {

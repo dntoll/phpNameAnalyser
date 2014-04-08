@@ -1,14 +1,12 @@
 <?php
 
 
-
+/*
 namespace analyser;
 
 class Scope {
 
-	/**
-	 * @var String
-	 */
+	
 	private $name;
 	private static $property = null;
 	private static $parameter = null;
@@ -39,4 +37,4 @@ class Scope {
 	public function toString() {
 		return $this->name;
 	}
-}
+}*/

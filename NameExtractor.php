@@ -63,6 +63,7 @@ class NameExtractor {
 			//Do not go deeper since we have done that
 			if ($callIndex > 2)
 				continue;
+			
 
 
 
@@ -76,13 +77,13 @@ class NameExtractor {
 		   			continue;
 
 		   		$this->addProperties($that);
-
+				//loggThis("tick", $call);
 		   	}
 
 			
 
 		   	if (isset($call["args"])) {
-		   		
+		   		//loggThis("tick", $call);
 		   		if (isset($call["class"])) {
 		   			$this->addMethodParameters($call);
 		   		} else {
@@ -106,12 +107,12 @@ class NameExtractor {
 				$functionName != "wp_initial_constants" &&
 				$functionName != "wp_plugin_directory_constants" ) {
    					
-				if ($functionName != $this->functionName) {
+				//if ($functionName != $this->functionName) {
 					$this->functionName = $functionName;
 	  				$rf = new \ReflectionFunction($functionName);
 	  				$ec = new FunctionParameterContext($functionName);
 		   			$this->recordArguments($call["args"], $rf, $ec, new Comment($rf->getDocComment()));
-	   			}
+	   			//}
    			}
    		} catch (\ReflectionException $e) {
 		}
@@ -194,7 +195,7 @@ class NameExtractor {
 
 					fwrite($fileHandle, "$className;$variableName;$typeName;" . $comment->toString() .";T[" .  $name->getTypeHint() . "]\n");
 
-					loggThis("found variable in $className", array(	"context" => $className, 
+					loggThis("found instance in $className", array(	"context" => $className, 
 																	"name" => $variableName, 
 																	"dynamic type" => $typeName, 
 																	"dynamic_subtype" => $arrayTypes,
@@ -223,14 +224,16 @@ class NameExtractor {
 		$type = $value->getType();
 		$arrayTypes = $value->getArrayTypes();
 
-		$nameTypeList = $context->getByName($variableName, $comment);
+		$variableDeclaration = $context->getByName($variableName, $comment);
 
-		$nameTypeList->addType($type, $arrayTypes);
+		$variableDeclaration->addType($type, $arrayTypes);
 
-		$nameTypeList->setTypeHint($typeHint);
+		$variableDeclaration->setTypeHint($typeHint);
 
 		if ($value->isObject()) {
-			$this->tracker->trackObject($value, $variableName, $context, $type, $nameTypeList);
+			$this->tracker->trackObject($value, $variableDeclaration);
+
+			$this->addProperties($value->variableValue);
 		}
 	}
 }

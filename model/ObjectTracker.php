@@ -12,29 +12,32 @@ class ObjectTracker {
 		$this->saveFile = $fileName;
 	}
 
-	public function trackObject(Instance $instance, VariableName $variableName, AbstractExecutionContext $context, Type $type, VariableDeclaration $decl) {
+	public function trackObject(Instance $instance, VariableDeclaration $decl) {
+		$type = $instance->getType();
 		$ref = $instance->getObjectRef();
 		$objectRef = $type->toString() . "-" . $ref;
+
 		if (isset($this->objects[$objectRef]) == false) {
 			$this->objects[$objectRef] = array();
 		}
 
-		if (isset($this->objects[$objectRef][$variableName->toString()]) == false) {
-			$this->objects[$objectRef][$variableName->toString()] = array();
-		}
-		$this->objects[$objectRef][$variableName->toString()][$context->getFunction()] = $decl;
+		if (isset($this->objects[$objectRef][$decl->getContextFunction()]) == false) {
+			$this->objects[$objectRef][$decl->getContextFunction()] = $decl;
 
-		loggThis("tracked object ".$type->toString(). " " . $variableName->toString() . " [$ref] in " . $context->getFunction(), $decl);
+			loggThis("tracked object " . $type->toString(). " " . $decl->getName()->toString() . " [$ref] in " . $decl->getContextFunction());
+		}
+
+		
 	}
 
 	public function writeCSV() {
 		$fileHandle = fopen($this->saveFile, "w");
-		foreach ($this->objects as $objectRef => $objectInstance) {
-			foreach ($objectInstance as $name => $usages) {
-				foreach ($usages as $function => $decl) {
-					fwrite($fileHandle, "$objectRef; $name; $function; \n");
-					//var_dump("$objectRef; $name; $notUsed \n");
-				}
+		foreach ($this->objects as $objectRef => $contexts) {
+			foreach ($contexts as $functionContext => $variableDeclaration) {
+				$name = $variableDeclaration->getName()->toString();
+				fwrite($fileHandle, "$objectRef; $name; $functionContext; \n");
+				//var_dump("$objectRef; $name; $functionContext \n");
+				
 			}
 			
 		}

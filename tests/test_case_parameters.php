@@ -1,34 +1,32 @@
 <?php
-/*
- * This is a testcase for using the profiler
- */
+
+
+class ExampleParameterClass {}
 
 	
-	//end of init
 
+//test program starts
+class ParameterTestClass {
+	
+	function __construct() {
+	}
 
-	//test program starts
-	class ParameterTestClass {
-		
-		function __construct() {
-		}
-
-		/**
-		 * [doSomeFunkyShit description]
-		 * @param  Integer    $parameter1Integer          [description]
-		 * @param  Exception $parameter2SomeClass [description]
-		 * @return [type]                            [description]
-		 */
-		function methodWith2Parameters($parameter1Integer, Exception $parameter2SomeClass) {
-			echo "method called";
-		}
-
-		
+	/**
+	 * [doSomeFunkyShit description]
+	 * @param  Integer    $parameter1Integer          [description]
+	 * @param  ExampleParameterClass $parameter2SomeClass [description]
+	 * @return [type]                            [description]
+	 */
+	function methodWith2Parameters($parameter1Integer, ExampleParameterClass $parameter2SomeClass) {
+		echo "method called";
 	}
 
 	
-	$obj = new ParameterTestClass();
-	$obj->methodWith2Parameters(1, new Exception());
+}
+
+
+$obj = new ParameterTestClass();
+$obj->methodWith2Parameters(1, new ExampleParameterClass());
 	
 
 	
