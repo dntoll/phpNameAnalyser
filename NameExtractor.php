@@ -252,6 +252,8 @@ class NameExtractor {
 			$this->tracker->trackObject($value, $variableDeclaration);
 
 			$this->addProperties($value->variableValue);
+
+			
 		}
 	}
 }
